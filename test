@@ -1,0 +1,48 @@
+import re
+
+
+#读取文件中的awb号码
+with open('awbnumber.txt','r') as f:
+    database=[line.strip() for line in f.readlines()]
+print(database)
+
+# 添加、查询、删除awb号码
+
+while True:
+    awb_data=input("选择1.添加awb号码 2.查询目前的awb号码 3.删除awb号码 4.跳过\n")
+    if awb_data == "1":
+        new_awb=input("awb number")  #输入新的awb
+        if len(new_awb) == 12 and re.match(r'\d{3}-\d{8}',new_awb): #满足才能条件加入
+            # print(len(new_awb), new_awb)
+            database.append(new_awb)
+            database=list(set(database))  #去掉重复的awb号码
+            print(database)
+
+            lines=[i+"\n" for i in database]  #为写入准备换行格式
+
+            with open('awbnumber.txt','w') as fout:  #保存AWB号码
+                for i in lines:
+                    fout.write(i)
+
+        else:
+            print("awb号码错误，请重新输入")
+            continue
+    if awb_data=="2":  #查询awb号码
+        print(database)
+
+    if awb_data=="3":  #删除awb号码
+        print('目前的awb号码：',database)
+        awb_delete=input("输入你要删除的awb号码")
+        database.remove(awb_delete)
+        print('剩余awb号码',database)
+
+        lines = [i + "\n" for i in database]  # 为写入准备换行格式
+
+        with open('awbnumber.txt', 'w') as fout:  # 保存AWB号码
+            for i in lines:
+                fout.write(i)
+
+    if awb_data=="4":
+        break
+    else:
+        continue
