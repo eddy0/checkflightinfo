@@ -1,0 +1,89 @@
+
+# 添加awb号码，查询awb的status，如果发生变化则发送邮件，删除awb号码
+
+import re
+import requests
+import bs4
+import time
+
+database = []
+
+global awb,prefix, number
+# 添加、查询、删除awb号码
+def awb_stock():
+
+    while True:
+        awb_data=input("选择1.添加awb号码 2.查询目前的awb号码 3.删除awb号码 4.跳过\n")
+        if awb_data == "1":
+            new_awb=input("awb number")  #输入新的awb
+            if len(new_awb) == 12 and re.match(r'\d{3}-\d{8}',new_awb): #满足才能条件加入
+                # print(len(new_awb), new_awb)
+                database.append(new_awb)
+                database=list(set(database))  #去掉重复的awb号码
+                print(database)
+            else:
+                print("awb号码错误，请重新输入")
+                continue
+        if awb_data=="2":
+            print(database)
+        if awb_data=="3":
+            print('目前的awb号码：',database)
+            awb_delete=input("输入你要删除的awb号码")
+            database.remove(awb_delete)
+            print('剩余awb号码',database)
+        if awb_data=="4":
+            break
+        else:
+            continue
+    return database
+
+
+
+
+# 得到awb号码
+def awb_get( ):
+    for awb in awb_stock():
+        print(awb)
+        prefix=re.search(r'^\d{3}',awb).group()  #前面位数
+        # print(prefix)
+        number=re.search(r'\d{8}\b',awb).group() #后面awb号码
+        # print(number)
+
+        if prefix == "297":
+            print("this is china airlines")
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+            }
+
+            data = {
+                    'AwbPfx':prefix,
+                    'AwbNum':number,
+
+            }
+
+            url = "https://cargo.china-airlines.com/CCNetv2/content/manage/ShipmentTracking.aspx?checkcode=*7*upHGj"
+
+            try:
+                req = requests.get(url, params=data, headers=headers).text
+                print(req(url))
+                html = bs4.BeautifulSoup(req, "lxml")
+                result = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
+                print(result)
+
+                time.sleep(3)
+                result_check = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
+                print(result_check)
+                if result != result_check:
+                    print('changed')
+
+            except:
+                print("pls check AWB")
+
+
+        else:
+            print('正在开发')
+
+
+
+awb_get( )
