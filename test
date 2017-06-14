@@ -1,6 +1,9 @@
 
 import re
 
+import requests
+import bs4
+
 
 #读取文件中的awb号码
 with open('awbnumber.txt','r') as f:
@@ -26,16 +29,17 @@ while True:
                     fout.write(i)
 
         else:
-            print("awb号码错误，请重新输入")
+            print("awb号码错误，请重新输入\n")
             continue
 
 
     if awb_data=="2":  #查询awb号码
         print(database)
+        print()
 
     if awb_data=="3":  #删除awb号码
         print('目前的awb号码：',database)
-        awb_delete=input("输入你要删除的awb号码")
+        awb_delete=input("输入你要删除的awb号码\n")
         try:
             database.remove(awb_delete)
             print('剩余awb号码',database)
@@ -50,6 +54,81 @@ while True:
 
 
     if awb_data=="4":
+        print('开始查询\n')
+
         break
     else:
         continue
+
+
+save_info=[] #设置保存flight information
+for awb in database:
+
+    print('========'*5)
+    print(awb)
+    prefix=re.search(r'^\d{3}',awb).group()  #前面位数
+    # print(prefix)
+    number=re.search(r'\d{8}\b',awb).group() #后面awb号码
+    # print(number)
+
+    if prefix == "297":
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        }
+        data = {
+                'AwbPfx':prefix,
+                'AwbNum':number
+        }
+        url = "https://cargo.china-airlines.com/CCNetv2/content/manage/ShipmentTracking.aspx?checkcode=*7*upHGj"
+
+        try:
+            req = requests.get(url, params=data, headers=headers).text
+            # print(req.url)
+            html = bs4.BeautifulSoup(req, "lxml")
+            result = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
+            print(result) #flight status
+            print()
+
+            try: #flight details
+                for k in range(2):
+                    result0 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblStatus_" + str(k)).text
+                    result1 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblBrd_" + str(k)).text
+                    result2 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblOff_" + str(k)).text
+                    result3 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblCcd_" + str(k)).text
+                    result4 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblFltNum_" + str(k)).text
+                    result5 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblPcs_" + str(k)).text
+                    result6 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblWgt_" + str(k)).text
+                    result7 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblDepTime_" + str(k)).text
+                    result8 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblArrTime_" + str(k)).text
+                    result_details = result0 + ' ' + result1 + ' ' + result2 + ' ' + result3 + result4 + ' ' + result5 + ' ' + result6 + '   ' + 'ETD:' + result7 + ' ' + 'ETA:' + result8
+                    print(result_details)
+
+
+
+
+            except:
+                print()
+            # print(save_info)
+            # 保存查询结果
+
+            save = awb + ' ' + result + "\n"
+
+            save_info.append(save)
+            with open('result.txt', 'w') as fr:
+                for w in save_info:
+                    fr.write(w)
+        except:
+            print("pls check AWB")
+
+
+
+            # time.sleep(3)
+            # result_check = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
+            # print(result_check)
+            # if result != result_check:
+            #     print('changed')
+
+
+
+    else:
+        print('正在开发')
