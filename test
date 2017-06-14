@@ -1,3 +1,4 @@
+
 import re
 
 
@@ -9,7 +10,7 @@ print(database)
 # 添加、查询、删除awb号码
 
 while True:
-    awb_data=input("选择1.添加awb号码 2.查询目前的awb号码 3.删除awb号码 4.跳过\n")
+    awb_data=input("选择: 1.添加awb号码 2.查询目前的awb号码 3.删除awb号码 4.查询flight status\n")
     if awb_data == "1":
         new_awb=input("awb number")  #输入新的awb
         if len(new_awb) == 12 and re.match(r'\d{3}-\d{8}',new_awb): #满足才能条件加入
@@ -27,20 +28,26 @@ while True:
         else:
             print("awb号码错误，请重新输入")
             continue
+
+
     if awb_data=="2":  #查询awb号码
         print(database)
 
     if awb_data=="3":  #删除awb号码
         print('目前的awb号码：',database)
         awb_delete=input("输入你要删除的awb号码")
-        database.remove(awb_delete)
-        print('剩余awb号码',database)
+        try:
+            database.remove(awb_delete)
+            print('剩余awb号码',database)
+            lines = [i + "\n" for i in database]  # 为写入准备换行格式
 
-        lines = [i + "\n" for i in database]  # 为写入准备换行格式
+            with open('awbnumber.txt', 'w') as fout:  # 保存AWB号码
+                for i in lines:
+                    fout.write(i)
+        except:
+            print('awb号码输入错误或不在没有此awb号码')
+            continue
 
-        with open('awbnumber.txt', 'w') as fout:  # 保存AWB号码
-            for i in lines:
-                fout.write(i)
 
     if awb_data=="4":
         break
