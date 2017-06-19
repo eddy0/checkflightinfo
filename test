@@ -1,134 +1,251 @@
-
 import re
-
 import requests
 import bs4
 
+def NCA():
+    data={
+        'prefix':prefix,
+        'doc1':number
+    }
+    url="https://www.nca.aero/icoportal/jsp/operations/shipment/AWBTracking.jsf"
 
-#读取文件中的awb号码
+    req=requests.get(url,params=data).text
+    html=bs4.BeautifulSoup(req,"lxml")
+
+    result=html.find("span",id="shipmentTracking:trckingDetails:currentStatusPanelGroup")
+    # print (number+prefix)
+    # print(result)
+    print('CURRENT STATUS')
+    print(result.text.replace('\n','')[14:])
+    print()
+
+
+    # <tbody id="shipmentTracking:trckingDetails:currentStatus:tbody_element">
+    # <tr class="portalTableDataRow1"><td class="portalTableColumnLeftAligned"><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info1">HKG</label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info2"> : </label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info3"></label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info5"></label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info6"></label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info4"></label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info7"></label><label class="iCargoLabelLeftAligned_TrackingDetails" id="shipmentTracking:trckingDetails:currentStatus:0:info8">1 pcs delivered </label></td></tr></tbody></table>
+
+
+    try:
+        result1=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:FlightValue").text
+        result2=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:DepartureValue").text
+        result3=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:ArrivalValue").text
+        result4=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:PiecesValue").text
+        result5=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:WeightValue").text
+        result6=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:STDValue").text
+        result7=html.find("span",id="shipmentTracking:trckingDetails:_idJsp65:0:STAValue").text
+
+        print('FLIGHT DETAILS:')
+        print(result4+"pcs",result5+"kg")
+        print(result2,"----",result3,"----",result1)
+        print('ETD:', result6, "\tETA:", result7)
+        try:
+            result8 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:0:EtdAtdValue1").text
+            result9 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:0:EtaAtaValue1").text
+            print('ATD:',result8,"\tATA:",result9)
+        except:
+            print()
+    except:
+        print("PLEASE CHECK AWB NUMBER")
+
+
+    try:
+        result1_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:FlightValue").text
+        result2_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:DepartureValue").text
+        result3_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:ArrivalValue").text
+        result6_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:STDValue").text
+        result7_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:STAValue").text
+
+        # print(result4 + "pcs", result5 + "kg")
+        print(result2_1, "----", result3_1,"----",result1_1)
+        print('ETD:', result6_1, "\tETA:", result7_1)
+        try:
+            result8_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:EtdAtdValue1").text
+            result9_1 = html.find("span", id="shipmentTracking:trckingDetails:_idJsp65:1:EtaAtaValue1").text
+            print('ATD:', result8_1, "\tATA:", result9_1)
+        except:
+            print()
+
+    except:
+        print()
+
+def CI():
+    headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+            }
+    data = {
+                    'AwbPfx':prefix,
+                    'AwbNum':number
+            }
+    url="https://cargo.china-airlines.com/CCNetv2/content/manage/ShipmentTracking.aspx?checkcode=*7*upHGj"
+
+
+    req=requests.get(url,params=data, headers=headers).text
+    html=bs4.BeautifulSoup(req,"lxml")
+    result = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
+
+    total_pc=html.find("span", id="ContentPlaceHolder1_lblPcs").text
+    total__weight=html.find("span", id="ContentPlaceHolder1_lblWgt").text
+    print('TOTAL:',total_pc+'PCs',total__weight)
+    print()
+    print('CURRENT STATUS\n',result)
+    print()
+    print('FLIGHT DETAILS:')
+
+
+    try:
+
+        for k in range(3):
+            result0 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblStatus_"+str(k)).text
+            result1 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblBrd_" + str(k)).text
+            result2 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblOff_" + str(k)).text
+            result3 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblCcd_" + str(k)).text
+            result4 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblFltNum_" + str(k)).text
+            result5 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblPcs_" + str(k)).text
+            result6 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblWgt_" + str(k)).text
+            result7 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblDepTime_" + str(k)).text
+            result8 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblArrTime_" + str(k)).text
+            # print(result0,result1,result2,result3+result4,result5,result6,result7,result8)
+            result_detail=result0+' '+result1+' '+ result2+' '+ result3 + result4+' '+ result5+' '+result6+'   '+ 'ETD:'+result7+' '+'ETA:'+ result8
+            # print(result_detail)
+            result_details = []
+            result_details.append(result_detail)
+            for i in result_details:
+                print(i)
+    except:
+        print()
+
+def ANA():
+    headers={
+        'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    }
+    data={
+        "trackingFilterWidgetModel.trackingFilterVO.screenStatus":"" ,
+        "trackingFilterWidgetModel.trackingFilterVO.shipments":"0",
+        "trackingFilterWidgetModel.trackingFilterVO.awbVO.shipmentPrefix":"205",
+        "trackingFilterWidgetModel.trackingFilterVO.fromScreen":"",
+        "trackingFilterWidgetModel.trackingFilterVO.trackingShipmentId":"",
+        "tokenString":""
+    }
+    # "82759110"
+    # 82758992
+    # 82635350
+    # 82677195
+    # 82791855
+
+    url="https://cargo.ana.co.jp/anaicoportal/portal/trackshipments?fragments=trackPanel&trackingFilterWidgetModel.trackingFilterVO.awbVO.shipmentPrefixArray%5B0%5D="+prefix+"&trackingFilterWidgetModel.trackingFilterVO.awbVO.documentNumberArray%5B0%5D="+number
+
+    req=requests.get(url,params=data, headers=headers).text
+    # print(req1)
+    html=bs4.BeautifulSoup(req,"lxml")
+
+    try:
+        result1=html.find("span", "label").text.strip()
+        result2=html.find("span", "word-1").text.strip()
+        result3=html.find("span", "word-2").text.strip()
+        result4=html.find("div", "label").text.strip()
+
+        print("status:")
+        print(result1+":",result2+result3,result4)
+        print('FLIGHT DETAILS')
+
+        try:
+            result5=html.find_all("h5", "margin-left-5")
+
+            # print(result5)
+            list=[i.text.strip() for i in result5]
+            # print (list)
+            # print(list[1])
+            print(list[0])
+            a=list[1].replace('\t',"").replace('\r\n',"").replace('\xa0',"----")
+            b=list[2].replace('\t',"").replace('\r\n',"").replace('\xa0',"----")
+
+            print (a)
+            print (b)
+            print (list[3])
+            print(list[4])
+            c=list[5].replace('\t',"").replace('\r\n',"").replace('\xa0',"-----")
+            d=list[6].replace('\t',"").replace('\r\n',"").replace('\xa0',"-----")
+            print(c)
+            print(d)
+            print(list[7])
+
+        except:
+            print()
+    except:
+        print('WRONG AWB OR NO FLIGHT INFORMATION')
+
 with open('awbnumber.txt','r') as f:
     database=[line.strip() for line in f.readlines()]
 print(database)
 
-# 添加、查询、删除awb号码
 
 while True:
-    awb_data=input("选择: 1.添加awb号码 2.查询目前的awb号码 3.删除awb号码 4.查询flight status\n")
+    awb_data=input("SELECT:\n 1.ADD NEW AWB; 2.CURRENT AWB; 3.DELETE AWB 4. CHECK FLIGHT INFO\n")
     if awb_data == "1":
-        new_awb=input("awb number")  #输入新的awb
-        if len(new_awb) == 12 and re.match(r'\d{3}-\d{8}',new_awb): #满足才能条件加入
+        new_awb=input("awb number")
+        if len(new_awb) == 12 and re.match(r'\d{3}-\d{8}',new_awb):
             # print(len(new_awb), new_awb)
             database.append(new_awb)
-            database=list(set(database))  #去掉重复的awb号码
+            database=list(set(database))
             print(database)
 
-            lines=[i+"\n" for i in database]  #为写入准备换行格式
+            lines=[i+"\n" for i in database]
 
-            with open('awbnumber.txt','w') as fout:  #保存AWB号码
+            with open('awbnumber.txt','w') as fout:
                 for i in lines:
                     fout.write(i)
-
         else:
-            print("awb号码错误，请重新输入\n")
+            print("wrong awb\n")
             continue
 
 
-    if awb_data=="2":  #查询awb号码
+    if awb_data=="2":
         print(database)
         print()
 
-    if awb_data=="3":  #删除awb号码
-        print('目前的awb号码：',database)
-        awb_delete=input("输入你要删除的awb号码\n")
+    if awb_data=="3":
+        print('CURRENT AWB LIST：',database)
+        awb_delete=input("ENTER THE AWB NUMBER YOU WANT TO DELETE\n")
         try:
             database.remove(awb_delete)
-            print('剩余awb号码',database)
-            lines = [i + "\n" for i in database]  # 为写入准备换行格式
+            print('REST OF AWB LIST',database)
+            lines = [i + "\n" for i in database]
 
-            with open('awbnumber.txt', 'w') as fout:  # 保存AWB号码
-                for i in lines:
-                    fout.write(i)
+            with open('awbnumber.txt', 'w') as fout:
+                for line in lines:
+                    fout.write(line)
         except:
-            print('awb号码输入错误或不在没有此awb号码')
+            print('awb wrong or none awb')
             continue
 
-
     if awb_data=="4":
-        print('开始查询\n')
+        print('CHECKING.....\n')
 
-        break
+        for awb in database:
+            print('========' * 6)
+            print(awb)
+            prefix = re.search(r'^\d{3}', awb).group()
+            number = re.search(r'\d{8}\b', awb).group()
+
+            if prefix == "297":
+                try:
+                    CI()
+                except:
+                    print("pls check AWB")
+            if prefix == "933":
+                try:
+                    NCA()
+                except:
+                    print("pls check AWB")
+            if prefix == "205":
+                try:
+                    ANA()
+                except:
+                    print("pls check AWB")
+
+             # else:
+                # print('sorry, still working on it')
+
     else:
         continue
 
 
-save_info=[] #设置保存flight information
-for awb in database:
-
-    print('========'*5)
-    print(awb)
-    prefix=re.search(r'^\d{3}',awb).group()  #前面位数
-    # print(prefix)
-    number=re.search(r'\d{8}\b',awb).group() #后面awb号码
-    # print(number)
-
-    if prefix == "297":
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-        }
-        data = {
-                'AwbPfx':prefix,
-                'AwbNum':number
-        }
-        url = "https://cargo.china-airlines.com/CCNetv2/content/manage/ShipmentTracking.aspx?checkcode=*7*upHGj"
-
-        try:
-            req = requests.get(url, params=data, headers=headers).text
-            # print(req.url)
-            html = bs4.BeautifulSoup(req, "lxml")
-            result = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
-            print(result) #flight status
-            print()
-
-            try: #flight details
-                for k in range(2):
-                    result0 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblStatus_" + str(k)).text
-                    result1 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblBrd_" + str(k)).text
-                    result2 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblOff_" + str(k)).text
-                    result3 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblCcd_" + str(k)).text
-                    result4 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblFltNum_" + str(k)).text
-                    result5 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblPcs_" + str(k)).text
-                    result6 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblWgt_" + str(k)).text
-                    result7 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblDepTime_" + str(k)).text
-                    result8 = html.find("span", id="ContentPlaceHolder1_rpFlightEvent_lblArrTime_" + str(k)).text
-                    result_details = result0 + ' ' + result1 + ' ' + result2 + ' ' + result3 + result4 + ' ' + result5 + ' ' + result6 + '   ' + 'ETD:' + result7 + ' ' + 'ETA:' + result8
-                    print(result_details)
-
-
-
-
-            except:
-                print()
-            # print(save_info)
-            # 保存查询结果
-
-            save = awb + ' ' + result + "\n"
-
-            save_info.append(save)
-            with open('result.txt', 'w') as fr:
-                for w in save_info:
-                    fr.write(w)
-        except:
-            print("pls check AWB")
-
-
-
-            # time.sleep(3)
-            # result_check = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
-            # print(result_check)
-            # if result != result_check:
-            #     print('changed')
-
-
-
-    else:
-        print('正在开发')
