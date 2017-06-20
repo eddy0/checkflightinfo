@@ -1,6 +1,9 @@
 import re
 import requests
 import bs4
+from multiprocessing import Queue
+import idna
+from idna import idnadata
 
 def NCA():
     data={
@@ -10,7 +13,7 @@ def NCA():
     url="https://www.nca.aero/icoportal/jsp/operations/shipment/AWBTracking.jsf"
 
     req=requests.get(url,params=data).text
-    html=bs4.BeautifulSoup(req,"lxml")
+    html=bs4.BeautifulSoup(req,"html.parser")
 
     result=html.find("span",id="shipmentTracking:trckingDetails:currentStatusPanelGroup")
     # print (number+prefix)
@@ -79,7 +82,7 @@ def CI():
 
 
     req=requests.get(url,params=data, headers=headers).text
-    html=bs4.BeautifulSoup(req,"lxml")
+    html=bs4.BeautifulSoup(req,"html.parser")
     result = html.find("span", id="ContentPlaceHolder1_lblLatestFreightStatus").text
 
     total_pc=html.find("span", id="ContentPlaceHolder1_lblPcs").text
@@ -135,7 +138,7 @@ def ANA():
 
     req=requests.get(url,params=data, headers=headers).text
     # print(req1)
-    html=bs4.BeautifulSoup(req,"lxml")
+    html=bs4.BeautifulSoup(req,"html.parser")
 
     try:
         result1=html.find("span", "label").text.strip()
@@ -173,7 +176,7 @@ def ANA():
     except:
         print('WRONG AWB OR NO FLIGHT INFORMATION')
 
-with open('awbnumber.txt','r') as f:
+with open(r'c:\Users\Mike\desktop\awbnumber.txt','r') as f:
     database=[line.strip() for line in f.readlines()]
 print(database)
 
@@ -190,7 +193,7 @@ while True:
 
             lines=[i+"\n" for i in database]
 
-            with open('awbnumber.txt','w') as fout:
+            with open(r'c:\Users\Mike\desktop\awbnumber.txt','w') as fout:
                 for i in lines:
                     fout.write(i)
         else:
@@ -210,7 +213,7 @@ while True:
             print('REST OF AWB LIST',database)
             lines = [i + "\n" for i in database]
 
-            with open('awbnumber.txt', 'w') as fout:
+            with open(r'c:\Users\Mike\desktop\awbnumber.txt', 'w') as fout:
                 for line in lines:
                     fout.write(line)
         except:
@@ -221,7 +224,7 @@ while True:
         print('CHECKING.....\n')
 
         for awb in database:
-            print('========' * 6)
+            print('========' * 7)
             print(awb)
             prefix = re.search(r'^\d{3}', awb).group()
             number = re.search(r'\d{8}\b', awb).group()
@@ -229,23 +232,24 @@ while True:
             if prefix == "297":
                 try:
                     CI()
+                    print()
                 except:
                     print("pls check AWB")
             if prefix == "933":
                 try:
                     NCA()
+                    print()
                 except:
                     print("pls check AWB")
             if prefix == "205":
                 try:
                     ANA()
+                    print()
                 except:
                     print("pls check AWB")
 
-             # else:
-                # print('sorry, still working on it')
+            # else:
+            #    print('sorry, still working on it')
 
     else:
         continue
-
-
